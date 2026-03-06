@@ -54,7 +54,8 @@ import {
   Eye,
   EyeOff,
   List,
-  Images 
+  Images,
+  Send
 } from 'lucide-react';
 
 // --- FIREBASE INITIALIZATION ---
@@ -145,30 +146,22 @@ const AdminDashboard = ({
 }) => {
   const [activeTab, setActiveTab] = useState('settings');
   
-  // --- Page Management State ---
   const [editingPageId, setEditingPageId] = useState(null);
   const [pageForm, setPageForm] = useState({ id: '', title: '', description: '', icon: 'FileText' });
 
-  // --- Course Management State ---
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [courseCategoryFilter, setCourseCategoryFilter] = useState('all');
   const [courseForm, setCourseForm] = useState({ name: '', desc: '', icon: 'Monitor', category: 'computer' });
 
-  // --- User Management State ---
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '' });
   const [passwordForm, setPasswordForm] = useState({ userId: '', newPassword: '' });
 
-  // --- Menu & Socials State ---
   const [newLink, setNewLink] = useState({ label: '', url: '' });
   const [newSocial, setNewSocial] = useState({ platform: '', url: '', icon: 'Facebook' });
 
-  // --- Slider State ---
   const [newSliderUrl, setNewSliderUrl] = useState('');
-
-  // --- Gallery State ---
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
 
-  // === PAGE HANDLERS ===
   const handleSavePage = () => {
     if (pageForm.title && pageForm.description) {
       if (editingPageId) {
@@ -198,7 +191,6 @@ const AdminDashboard = ({
     }
   };
 
-  // === COURSE HANDLERS ===
   const handleSaveCourse = () => {
     if (courseForm.name && courseForm.desc) {
       if (editingCourseId) {
@@ -223,7 +215,6 @@ const AdminDashboard = ({
     }
   };
 
-  // === SETTINGS HANDLERS (LOGO & FAVICON) ===
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -248,7 +239,6 @@ const AdminDashboard = ({
     }
   };
 
-  // === USER HANDLERS ===
   const handleAddUser = () => {
     if (newUserForm.username && newUserForm.password) {
         if (users.some(u => u.username === newUserForm.username)) {
@@ -279,7 +269,6 @@ const AdminDashboard = ({
       }
   };
 
-  // === MENU & SOCIAL HANDLERS ===
   const handleToggleMenu = (id) => {
     setMenuConfig(menuConfig.map(item => item.id === id ? { ...item, visible: !item.visible } : item));
   };
@@ -322,7 +311,6 @@ const AdminDashboard = ({
     setSocials(socials.map(s => s.id === id ? { ...s, url: newUrl } : s));
   };
 
-  // === SLIDER HANDLERS ===
   const handleAddSliderUrl = () => {
     if (newSliderUrl) {
       setSliderImages([...sliderImages, { id: Date.now(), url: newSliderUrl }]);
@@ -346,7 +334,6 @@ const AdminDashboard = ({
     setSliderImages(sliderImages.filter(img => img.id !== id));
   };
 
-  // === GALLERY HANDLERS ===
   const handleAddGalleryUrl = () => {
     if (newGalleryUrl) {
       setGalleryImages([...galleryImages, { id: Date.now(), url: newGalleryUrl }]);
@@ -370,10 +357,6 @@ const AdminDashboard = ({
     setGalleryImages(galleryImages.filter(img => img.id !== id));
   };
 
-  const filteredCourses = courseCategoryFilter === 'all' 
-    ? courses 
-    : courses.filter(c => c.category === courseCategoryFilter);
-
   return (
     <div className="min-h-screen bg-slate-100 pt-24 pb-20">
       <div className="container mx-auto px-4">
@@ -388,7 +371,6 @@ const AdminDashboard = ({
         </div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Dashboard Tabs */}
           <div className="flex border-b overflow-x-auto">
             {[
               { id: 'settings', label: 'Settings', icon: Settings },
@@ -416,10 +398,9 @@ const AdminDashboard = ({
 
           <div className="p-6">
             
-            {/* --- SETTINGS TAB --- */}
+            {/* SETTINGS TAB */}
             {activeTab === 'settings' && (
               <div className="max-w-2xl mx-auto space-y-8">
-                {/* Identity Config */}
                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><Settings className="mr-2" size={20}/> Website Identity</h3>
                   <div className="grid md:grid-cols-2 gap-6">
@@ -442,7 +423,6 @@ const AdminDashboard = ({
                   </div>
                 </div>
 
-                {/* Logo Config */}
                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><ImageIcon className="mr-2" size={20}/> Logo Configuration</h3>
                    
@@ -497,7 +477,6 @@ const AdminDashboard = ({
                       </div>
                    )}
 
-                   {/* Preview */}
                    <div className="mt-6 p-4 bg-slate-200 rounded-lg flex items-center justify-center">
                       <div className="bg-white px-6 py-3 rounded-lg shadow-sm flex items-center">
                          <span className="text-xs text-slate-400 mr-3 uppercase font-bold tracking-wider">Preview:</span>
@@ -513,7 +492,6 @@ const AdminDashboard = ({
                    </div>
                 </div>
 
-                {/* Favicon Config */}
                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><ImageIcon className="mr-2" size={20}/> Favicon Configuration</h3>
                    
@@ -537,7 +515,6 @@ const AdminDashboard = ({
                      </div>
                    </div>
 
-                   {/* Favicon Preview */}
                    {siteConfig.faviconUrl && (
                      <div className="mt-6 p-4 bg-slate-200 rounded-lg flex items-center justify-center">
                         <div className="bg-white px-6 py-3 rounded-lg shadow-sm flex items-center">
@@ -553,7 +530,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- SLIDER TAB --- */}
+            {/* SLIDER TAB */}
             {activeTab === 'slider' && (
               <div className="max-w-4xl mx-auto space-y-6">
                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -606,7 +583,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- GALLERY TAB --- */}
+            {/* GALLERY TAB */}
             {activeTab === 'gallery' && (
               <div className="max-w-4xl mx-auto space-y-6">
                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -658,10 +635,9 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- MENU & SOCIALS TAB --- */}
+            {/* MENUS & SOCIALS TAB */}
             {activeTab === 'menus' && (
               <div className="grid md:grid-cols-2 gap-8">
-                {/* Header Menu Config */}
                 <div className="space-y-6">
                   <div className="bg-white border rounded-xl p-6 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><List size={20} className="mr-2"/> Header Menu Items</h3>
@@ -709,7 +685,6 @@ const AdminDashboard = ({
                   </div>
                 </div>
 
-                {/* Social Media Config */}
                 <div className="space-y-6">
                   <div className="bg-white border rounded-xl p-6 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><Globe size={20} className="mr-2"/> Social Media Icons</h3>
@@ -771,7 +746,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- USERS TAB --- */}
+            {/* USERS TAB */}
             {activeTab === 'users' && (
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
@@ -801,7 +776,6 @@ const AdminDashboard = ({
                 </div>
 
                 <div className="space-y-6">
-                   {/* Add User */}
                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                       <h4 className="font-bold text-slate-800 mb-4 flex items-center"><Plus size={18} className="mr-2"/> Add New Admin</h4>
                       <div className="space-y-3">
@@ -822,7 +796,6 @@ const AdminDashboard = ({
                       </div>
                    </div>
 
-                   {/* Change Password */}
                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                       <h4 className="font-bold text-slate-800 mb-4 flex items-center"><Lock size={18} className="mr-2"/> Update Password</h4>
                       <div className="space-y-3">
@@ -848,7 +821,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- PAGES TAB --- */}
+            {/* PAGES TAB */}
             {activeTab === 'pages' && (
               <div>
                 <div className={`mb-8 p-6 rounded-xl border ${editingPageId ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -914,7 +887,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- INSTITUTES TAB --- */}
+            {/* INSTITUTES TAB */}
             {activeTab === 'institutes' && (
               <div className="space-y-6">
                 <div className="bg-blue-50 p-4 rounded-lg text-blue-800 mb-4 border border-blue-200">
@@ -944,7 +917,6 @@ const AdminDashboard = ({
                           className="w-full p-2 border rounded h-24 bg-slate-50"
                         />
                       </div>
-                      {/* Show Points editor for non-computer institutes */}
                       {key !== 'computer' && (
                           <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Course Highlights / Syllabus Points</label>
@@ -963,7 +935,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-            {/* --- COURSES TAB (COMPUTER ONLY) --- */}
+            {/* COURSES TAB (COMPUTER ONLY) */}
             {activeTab === 'courses' && (
               <div>
                 <div className={`mb-8 p-6 rounded-xl border ${editingCourseId ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -1048,7 +1020,7 @@ const AdminDashboard = ({
   );
 };
 
-// --- IMAGE SLIDER COMPONENT ---
+// --- ADDITIONAL COMPONENTS ---
 const ImageSlider = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -1056,7 +1028,7 @@ const ImageSlider = ({ images }) => {
     if (!images || images.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }, 5000); // Auto-slide every 5 seconds
+    }, 5000); 
     return () => clearInterval(interval);
   }, [images.length]);
 
@@ -1076,10 +1048,8 @@ const ImageSlider = ({ images }) => {
         </div>
       ))}
       
-      {/* Decorative Overlay to make it blend well with the design */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10 pointer-events-none"></div>
 
-      {/* Controls */}
       {images.length > 1 && (
         <>
           <button 
@@ -1113,7 +1083,6 @@ const ImageSlider = ({ images }) => {
   );
 };
 
-// --- GALLERY PAGE COMPONENT ---
 const GalleryFullPage = ({ images, navigateTo }) => {
   return (
     <div className="pt-24 pb-20 bg-slate-50 min-h-screen">
@@ -1150,7 +1119,6 @@ const GalleryFullPage = ({ images, navigateTo }) => {
   );
 };
 
-// --- GENERIC PAGE RENDERER ---
 const DynamicPageView = ({ page, navigateTo }) => {
   const Icon = ICON_MAP[page.icon] || FileText;
   
@@ -1210,7 +1178,7 @@ const InstitutePage = ({ type, data, courses, navigateTo }) => {
     Icon = Scissors;
   }
 
-  // Parse points from string to array (if available)
+  // Parse points from string to array
   const pointsList = data.points ? data.points.split('\n').filter(p => p.trim() !== '') : [];
 
   return (
@@ -1232,7 +1200,6 @@ const InstitutePage = ({ type, data, courses, navigateTo }) => {
           <div className="p-10">
             
             {isComputer ? (
-              // --- GRID LAYOUT FOR COMPUTER ---
               <>
                 <h2 className="text-2xl font-bold text-slate-800 mb-8 border-b pb-4">Our Course Catalog</h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1251,11 +1218,9 @@ const InstitutePage = ({ type, data, courses, navigateTo }) => {
                 </div>
               </>
             ) : (
-              // --- SINGLE LIST LAYOUT FOR OTHERS ---
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-6">Course Highlights</h2>
                 <div className={`p-8 rounded-xl border ${isMobile ? 'bg-indigo-50 border-indigo-200' : isHotel ? 'bg-orange-50 border-orange-200' : 'bg-pink-50 border-pink-200'}`}>
-                    
                     {pointsList.length > 0 ? (
                         <ul className="space-y-3 text-slate-700">
                           {pointsList.map((point, index) => (
@@ -1278,16 +1243,150 @@ const InstitutePage = ({ type, data, courses, navigateTo }) => {
   );
 };
 
+const ContactPage = ({ navigateTo }) => {
+  const [formStatus, setFormStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormStatus('submitting');
+    
+    const formData = new FormData(e.target);
+    
+    // --- DIRECT EMAIL SENDER ---
+    formData.append("access_key", "1dfef1ee-dcd4-4e73-8088-27762c6afff5"); 
+    
+    formData.append("subject", `New Inquiry from ${formData.get('name')} (Tongdam Website)`);
+    formData.append("from_name", "Tongdam Website Contact Form");
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setFormStatus('success');
+        e.target.reset(); // Clear the form
+        setTimeout(() => setFormStatus('idle'), 5000); // Go back to normal after 5 seconds
+      } else {
+        setFormStatus('error');
+      }
+    } catch (err) {
+      setFormStatus('error');
+    }
+  };
+
+  return (
+    <div className="pt-24 pb-20 bg-slate-50 min-h-screen">
+      <div className="container mx-auto px-4 max-w-5xl">
+        <button onClick={() => navigateTo('home')} className="flex items-center text-blue-600 font-semibold mb-6 hover:underline">
+          <ChevronLeft size={20} /> Back to Home
+        </button>
+        
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-slate-200">
+          
+          <div className="bg-blue-900 text-white p-10 md:w-2/5 flex flex-col justify-between relative overflow-hidden">
+            <div className="relative z-10">
+                <h2 className="text-3xl font-bold mb-2">Get in Touch</h2>
+                <p className="text-blue-200 mb-10">We'd love to hear from you. Our friendly team is always here to chat.</p>
+                
+                <div className="space-y-8">
+                    <div className="flex items-start">
+                        <Phone size={24} className="mr-4 text-yellow-400 mt-1 flex-shrink-0" />
+                        <div>
+                            <h3 className="font-bold text-lg mb-2">Call Us</h3>
+                            <div className="space-y-1">
+                                <a href="tel:+918974840121" className="block text-blue-100 hover:text-white transition-colors">+91 89748 40121</a>
+                                <a href="tel:+918732069731" className="block text-blue-100 hover:text-white transition-colors">+91 87320 69731</a>
+                                <a href="tel:+916009271392" className="block text-blue-100 hover:text-white transition-colors">+91 60092 71392</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                        <Mail size={24} className="mr-4 text-yellow-400 mt-1 flex-shrink-0" />
+                        <div>
+                            <h3 className="font-bold text-lg mb-1">Email Us</h3>
+                            <p className="text-blue-100 break-all">tongdamcomputertc@gmail.com</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start">
+                        <MapPin size={24} className="mr-4 text-yellow-400 mt-1 flex-shrink-0" />
+                        <div>
+                            <h3 className="font-bold text-lg mb-1">Visit Us</h3>
+                            <p className="text-blue-100">Damkam Bazar, New Lamka,<br/>Churachandpur, Manipur 795128</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-800 rounded-full opacity-50 z-0"></div>
+            <div className="absolute top-10 -right-10 w-32 h-32 bg-blue-800 rounded-full opacity-50 z-0"></div>
+          </div>
+          
+          <div className="p-10 md:w-3/5 bg-white">
+            <h3 className="text-2xl font-bold text-slate-800 mb-6">Send us a Message</h3>
+            <form onSubmit={handleSubmit} className="space-y-6">
+               <div className="grid md:grid-cols-2 gap-6">
+                   <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-2">Your Name</label>
+                       <input type="text" name="name" required className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-slate-50 transition-all" placeholder="John Doe" />
+                   </div>
+                   <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                       <input type="email" name="email" required className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-slate-50 transition-all" placeholder="john@example.com" />
+                   </div>
+               </div>
+               <div>
+                   <label className="block text-sm font-bold text-slate-700 mb-2">Message</label>
+                   <textarea name="message" required rows="5" className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-slate-50 transition-all resize-none" placeholder="How can we help you?"></textarea>
+               </div>
+               
+               <button 
+                  type="submit" 
+                  disabled={formStatus === 'submitting' || formStatus === 'success'}
+                  className={`font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center w-full md:w-auto
+                    ${formStatus === 'success' ? 'bg-green-500 hover:bg-green-600 text-white' : 
+                      formStatus === 'error' ? 'bg-red-500 hover:bg-red-600 text-white' : 
+                      'bg-blue-600 hover:bg-blue-700 text-white'}
+                    ${formStatus === 'submitting' ? 'opacity-70 cursor-not-allowed' : ''}
+                  `}
+               >
+                   {formStatus === 'submitting' && <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-5 h-5 mr-2"></span>}
+                   {formStatus === 'idle' && <Send size={18} className="mr-2" />}
+                   {formStatus === 'success' && <CheckCircle size={18} className="mr-2" />}
+                   {formStatus === 'error' && <XCircle size={18} className="mr-2" />}
+                   
+                   {formStatus === 'idle' && 'Send Message'}
+                   {formStatus === 'submitting' && 'Sending...'}
+                   {formStatus === 'success' && 'Message Sent!'}
+                   {formStatus === 'error' && 'Try Again'}
+               </button>
+
+               {formStatus === 'success' && (
+                 <p className="text-sm text-green-600 font-medium">Thank you! Your message has been sent directly to our inbox.</p>
+               )}
+               {formStatus === 'error' && (
+                 <p className="text-sm text-red-600 font-medium">Oops, something went wrong. Please check your internet connection and try again.</p>
+               )}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN APP COMPONENT ---
 
 const App = () => {
-  // --- STATE MANAGEMENT ---
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [currentView, setCurrentView] = useState('home');
   const [isDbReady, setIsDbReady] = useState(false);
   
-  // Admin & Auth State
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
@@ -1319,6 +1418,7 @@ const App = () => {
     { id: 'training', label: 'Training', type: 'dropdown-training', visible: true },
     { id: 'services', label: 'Services', type: 'dropdown-services', visible: true },
     { id: 'gallery', label: 'Gallery', type: 'internal', target: 'gallery', visible: true },
+    { id: 'contact', label: 'Contact Us', type: 'internal', target: 'contact', visible: true },
   ]);
 
   const [sliderImages, setSliderImages] = useState([
@@ -1433,7 +1533,6 @@ const App = () => {
 
   useEffect(() => {
       if (!db) {
-          // If running locally without Firebase keys, skip loading screen
           setIsDbReady(true);
           return;
       }
@@ -1459,7 +1558,6 @@ const App = () => {
                   }
               }
           });
-          // Signal that data has been downloaded so we can show the site
           setIsDbReady(true);
       }, (error) => {
           console.error("Firebase sync error:", error);
@@ -1491,15 +1589,12 @@ const App = () => {
   const handleSetGalleryImages = (data) => { setGalleryImages(data); saveStateToFirebase('galleryImages', data); };
   const handleSetUsers = (data) => { setUsers(data); saveStateToFirebase('users', data); };
 
-
-  // Handle scroll for navbar styling
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Update browser favicon when siteConfig.faviconUrl changes
   useEffect(() => {
     if (siteConfig.faviconUrl) {
       let link = document.querySelector("link[rel~='icon']");
@@ -1512,7 +1607,6 @@ const App = () => {
     }
   }, [siteConfig.faviconUrl]);
 
-  // Scroll to top when view changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentView]);
@@ -1526,15 +1620,12 @@ const App = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Validate against user list
     const foundUser = users.find(u => u.username === adminUser && u.password === adminPass);
-    
     if (foundUser) {
       setIsAdmin(true);
       setCurrentUser(foundUser.username);
       setCurrentView('admin-dashboard');
       setLoginError('');
-      // Reset fields for security
       setAdminUser('');
       setAdminPass('');
     } else {
@@ -1548,14 +1639,10 @@ const App = () => {
     setCurrentView('home');
   };
 
-  // Get current Page Object if viewing a dynamic page
   const currentPageObj = pages.find(p => p.id === currentView);
-
   const isNavSolid = scrolled || currentView !== 'home';
 
-  // Logo Rendering Component
   const Logo = ({ lightMode = false }) => {
-    // Determine what graphic to show (Image or Icon)
     const graphic = (siteConfig.logoType === 'image' && siteConfig.logoUrl) ? (
       <img src={siteConfig.logoUrl} alt="Logo" className="h-10 w-auto object-contain rounded-lg" />
     ) : (
@@ -1577,7 +1664,6 @@ const App = () => {
   const handleScrollToSection = (id) => {
       if (currentView !== 'home') {
           navigateTo('home');
-          // Wait briefly for render then scroll
           setTimeout(() => {
              document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
@@ -1586,7 +1672,6 @@ const App = () => {
       }
   };
 
-  // --- SHOW LOADING SCREEN WHILE FIREBASE FETCHES DATA ---
   if (!isDbReady) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
@@ -1599,7 +1684,6 @@ const App = () => {
   return (
     <div className="font-sans text-slate-800 bg-slate-50 min-h-screen flex flex-col">
       
-      {/* Navigation */}
       {currentView !== 'login' && (
         <nav className={`fixed w-full z-50 transition-all duration-300 ${isNavSolid ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
           <div className="container mx-auto px-4 flex justify-between items-center">
@@ -1610,7 +1694,6 @@ const App = () => {
                <Logo />
             </div>
 
-            {/* Desktop Menu */}
             <div className="hidden md:flex space-x-6 items-center">
               {isAdmin ? (
                 <>
@@ -1693,7 +1776,6 @@ const App = () => {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
             <div className="md:hidden">
               <button onClick={toggleMenu} className={`${isNavSolid ? 'text-slate-800' : 'text-white'}`}>
                 {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -1701,7 +1783,6 @@ const App = () => {
             </div>
           </div>
 
-          {/* Mobile Menu Dropdown */}
           {isMenuOpen && (
             <div className="md:hidden bg-white absolute top-full left-0 w-full shadow-lg border-t h-screen overflow-y-auto pb-20">
               <div className="flex flex-col p-4 space-y-4">
@@ -1723,9 +1804,8 @@ const App = () => {
                           </button>
                        ))}
                     </div>
-                    {/* Render Custom Links & Extra Menu Items in Mobile Menu */}
                     <div className="pt-2 border-t mt-2">
-                      {menuConfig.filter(i => (i.type === 'custom' || i.id === 'gallery') && i.visible).map(item => (
+                      {menuConfig.filter(i => (i.type === 'custom' || i.id === 'gallery' || i.id === 'contact') && i.visible).map(item => (
                          item.type === 'custom' ? (
                             <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left py-2 text-slate-600 hover:text-blue-600 font-medium">
                                {item.label}
@@ -1745,11 +1825,9 @@ const App = () => {
         </nav>
       )}
 
-      {/* VIEW ROUTING LOGIC */}
       <div className="flex-grow">
         {currentView === 'home' && (
           <>
-            {/* Hero Section */}
             <section className="relative pt-32 pb-20 lg:py-0 lg:min-h-screen flex items-center overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-700 z-0"></div>
               <div className="absolute top-0 right-0 w-1/2 h-full bg-white opacity-5 transform -skew-x-12 translate-x-20"></div>
@@ -1781,7 +1859,6 @@ const App = () => {
                       </button>
                     </div>
                   </div>
-                  {/* Hero Image / Graphic */}
                   <div className="md:w-2/5 flex justify-center">
                     <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20 shadow-2xl">
                       <div className="grid grid-cols-2 gap-4">
@@ -1808,12 +1885,10 @@ const App = () => {
               </div>
             </section>
 
-            {/* NEW IMAGE SLIDER SECTION */}
             {sliderImages.length > 0 && (
                <ImageSlider images={sliderImages} />
             )}
 
-            {/* Educational Institutes Section */}
             <section id="institutes" className="py-20 bg-white">
               <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
@@ -1823,7 +1898,6 @@ const App = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {/* Computer Training Card */}
                   <div 
                     onClick={() => navigateTo('computer')}
                     className="group bg-slate-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 cursor-pointer"
@@ -1841,7 +1915,6 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Mobile Repairing Card */}
                   <div 
                     onClick={() => navigateTo('mobile')}
                     className="group bg-slate-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 cursor-pointer"
@@ -1859,7 +1932,6 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Tailoring Card */}
                   <div 
                     onClick={() => navigateTo('tailoring')}
                     className="group bg-slate-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 cursor-pointer"
@@ -1877,7 +1949,6 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Hotel Management Card */}
                   <div 
                     onClick={() => navigateTo('hotel')}
                     className="group bg-slate-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 cursor-pointer"
@@ -1898,7 +1969,6 @@ const App = () => {
               </div>
             </section>
 
-            {/* Dynamic Services Section */}
             <section id="services-section" className="py-20 bg-slate-100">
               <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row items-center mb-16">
@@ -1916,7 +1986,6 @@ const App = () => {
                   <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-10">
                     {pages.map((page, index) => {
                       const PageIcon = ICON_MAP[page.icon] || FileText;
-                      // Generate a border color based on index to give variety
                       const borderColors = ['border-yellow-500', 'border-red-500', 'border-blue-500', 'border-green-500', 'border-purple-500'];
                       const iconColors = ['text-yellow-600', 'text-red-600', 'text-blue-600', 'text-green-600', 'text-purple-600'];
                       const bgColors = ['bg-yellow-100', 'bg-red-100', 'bg-blue-100', 'bg-green-100', 'bg-purple-100'];
@@ -1943,7 +2012,6 @@ const App = () => {
               </div>
             </section>
             
-            {/* Gallery Preview Section */}
             {galleryImages.length > 0 && (
               <section className="py-20 bg-white">
                 <div className="container mx-auto px-4">
@@ -1988,7 +2056,7 @@ const App = () => {
                         >
                           <MapPin size={20} className="mr-2" /> Get Directions
                         </a>
-                        <button className="bg-white text-blue-900 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center">
+                        <button onClick={() => navigateTo('contact')} className="bg-white text-blue-900 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center">
                           <Phone size={20} className="mr-2" /> Contact Us
                         </button>
                      </div>
@@ -2060,14 +2128,16 @@ const App = () => {
           <InstitutePage type="hotel" data={instituteInfo.hotel} courses={courses} navigateTo={navigateTo} />
         )}
 
-        {/* Dynamic Page Rendering */}
+        {currentView === 'contact' && (
+          <ContactPage navigateTo={navigateTo} />
+        )}
+
         {currentPageObj && (
            <DynamicPageView page={currentPageObj} navigateTo={navigateTo} />
         )}
 
       </div>
 
-      {/* Footer */}
       {currentView !== 'login' && (
         <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 mt-auto">
           <div className="container mx-auto px-4">
