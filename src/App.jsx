@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Monitor, 
   Smartphone, 
@@ -18,7 +21,7 @@ import {
   Instagram,
   ChevronLeft,
   ChevronDown,
-  ChevronRight, // Added ChevronRight for slider
+  ChevronRight,
   BookOpen,
   Cpu,
   PenTool,
@@ -51,8 +54,26 @@ import {
   Eye,
   EyeOff,
   List,
-  Images // Added for gallery
+  Images 
 } from 'lucide-react';
+
+// --- FIREBASE INITIALIZATION ---
+// --- FIREBASE INITIALIZATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyB4gaMHsMjOsFX1elmX-5kq7DWYOpJyeQc",
+  authDomain: "tongdamcomputers.firebaseapp.com",
+  projectId: "tongdamcomputers",
+  storageBucket: "tongdamcomputers.firebasestorage.app",
+  messagingSenderId: "779811048439",
+  appId: "1:779811048439:web:cab28a7fbef5ce89b17cf2",
+  measurementId: "G-SGXSSDXFW4"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = firebaseConfig.projectId; 
+// ------------------------------------
 
 // Icon mapping for dynamic rendering
 const ICON_MAP = {
@@ -117,8 +138,8 @@ const AdminDashboard = ({
   users, setUsers,
   socials, setSocials,
   menuConfig, setMenuConfig,
-  sliderImages, setSliderImages, // Added slider props
-  galleryImages, setGalleryImages, // Added gallery props
+  sliderImages, setSliderImages,
+  galleryImages, setGalleryImages,
   currentUser,
   handleLogout 
 }) => {
@@ -202,13 +223,26 @@ const AdminDashboard = ({
     }
   };
 
-  // === SETTINGS HANDLERS (LOGO) ===
+  // === SETTINGS HANDLERS (LOGO & FAVICON) ===
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 800 * 1024) { alert("Image size exceeds 800KB. Please compress it or use an image URL."); return; }
       const reader = new FileReader();
       reader.onloadend = () => {
         setSiteConfig({ ...siteConfig, logoUrl: reader.result, logoType: 'image' });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFaviconUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 800 * 1024) { alert("Favicon size exceeds 800KB. Please compress it."); return; }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSiteConfig({ ...siteConfig, faviconUrl: reader.result });
       };
       reader.readAsDataURL(file);
     }
@@ -299,6 +333,7 @@ const AdminDashboard = ({
   const handleSliderUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 800 * 1024) { alert("Image size exceeds 800KB. Please compress it or use an image URL."); return; }
       const reader = new FileReader();
       reader.onloadend = () => {
         setSliderImages([...sliderImages, { id: Date.now(), url: reader.result }]);
@@ -322,6 +357,7 @@ const AdminDashboard = ({
   const handleGalleryUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 800 * 1024) { alert("Image size exceeds 800KB. Please compress it or use an image URL."); return; }
       const reader = new FileReader();
       reader.onloadend = () => {
         setGalleryImages([...galleryImages, { id: Date.now(), url: reader.result }]);
@@ -356,8 +392,8 @@ const AdminDashboard = ({
           <div className="flex border-b overflow-x-auto">
             {[
               { id: 'settings', label: 'Settings', icon: Settings },
-              { id: 'slider', label: 'Home Slider', icon: ImageIcon }, // Added slider tab
-              { id: 'gallery', label: 'Gallery', icon: Images }, // Added gallery tab
+              { id: 'slider', label: 'Home Slider', icon: ImageIcon },
+              { id: 'gallery', label: 'Gallery', icon: Images },
               { id: 'menus', label: 'Menus & Socials', icon: List },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'pages', label: 'Pages', icon: Layout },
@@ -475,6 +511,97 @@ const AdminDashboard = ({
                          </div>
                       </div>
                    </div>
+                </div>
+
+                {/* Favicon Config */}
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><ImageIcon className="mr-2" size={20}/> Favicon Configuration</h3>
+                   
+                   <div className="space-y-4">
+                     <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-2">Upload Favicon (PNG/JPG/ICO)</label>
+                       <div className="flex items-center space-x-2">
+                         <label className="flex items-center px-4 py-2 bg-white text-blue-600 rounded-lg shadow-sm border border-blue-200 cursor-pointer hover:bg-blue-50">
+                             <Upload size={18} className="mr-2" /> Choose File
+                             <input type="file" accept="image/*,.ico" onChange={handleFaviconUpload} className="hidden" />
+                         </label>
+                         <span className="text-xs text-slate-500">or</span>
+                         <input 
+                           type="text" 
+                           placeholder="Paste Favicon URL"
+                           value={siteConfig.faviconUrl || ''}
+                           onChange={(e) => setSiteConfig({...siteConfig, faviconUrl: e.target.value})}
+                           className="flex-grow p-2 border rounded"
+                         />
+                       </div>
+                     </div>
+                   </div>
+
+                   {/* Favicon Preview */}
+                   {siteConfig.faviconUrl && (
+                     <div className="mt-6 p-4 bg-slate-200 rounded-lg flex items-center justify-center">
+                        <div className="bg-white px-6 py-3 rounded-lg shadow-sm flex items-center">
+                           <span className="text-xs text-slate-400 mr-3 uppercase font-bold tracking-wider">Preview:</span>
+                           <div className="flex items-center border p-1 rounded bg-slate-100">
+                              <img src={siteConfig.faviconUrl} alt="Favicon Preview" className="h-4 w-4 object-contain" />
+                           </div>
+                           <span className="ml-2 text-sm text-slate-600">Browser Tab</span>
+                        </div>
+                     </div>
+                   )}
+                </div>
+              </div>
+            )}
+
+            {/* --- SLIDER TAB --- */}
+            {activeTab === 'slider' && (
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><ImageIcon className="mr-2" size={20}/> Manage Homepage Slider</h3>
+                  
+                  <div className="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <h4 className="text-sm font-bold text-slate-700 mb-3">Add New Image</h4>
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                      <input 
+                        type="text" 
+                        placeholder="Paste Image URL (https://...)" 
+                        value={newSliderUrl}
+                        onChange={(e) => setNewSliderUrl(e.target.value)}
+                        className="flex-grow p-2 border rounded w-full md:w-auto"
+                      />
+                      <button onClick={handleAddSliderUrl} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto font-medium">Add URL</button>
+                      <span className="text-slate-400 font-bold">OR</span>
+                      <label className="flex items-center px-6 py-2 bg-white text-blue-600 rounded-lg shadow-sm border border-blue-200 cursor-pointer hover:bg-blue-50 w-full md:w-auto justify-center font-medium">
+                          <Upload size={18} className="mr-2" /> Upload File
+                          <input type="file" accept="image/*" onChange={handleSliderUpload} className="hidden" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-700 mb-3">Current Slider Images ({sliderImages.length})</h4>
+                    {sliderImages.length === 0 ? (
+                      <p className="text-slate-500 italic text-sm">No images added. The slider will be hidden on the homepage.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {sliderImages.map((img, index) => (
+                          <div key={img.id} className="relative group rounded-xl overflow-hidden border border-slate-200 shadow-sm aspect-[4/3] bg-slate-100">
+                             <img src={img.url} alt={`Slide ${index + 1}`} className="w-full h-full object-cover" />
+                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                               <button 
+                                 onClick={() => handleRemoveSliderImage(img.id)} 
+                                 className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transform scale-75 group-hover:scale-100 transition-transform"
+                                 title="Delete Image"
+                               >
+                                 <Trash2 size={20}/>
+                               </button>
+                             </div>
+                             <span className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">#{index + 1}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -1158,35 +1285,35 @@ const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [currentView, setCurrentView] = useState('home');
+  const [isDbReady, setIsDbReady] = useState(false);
   
-  // Admin State
+  // Admin & Auth State
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
   const [loginError, setLoginError] = useState('');
   const [currentUser, setCurrentUser] = useState('');
+  const [authUser, setAuthUser] = useState(null);
 
-  // --- USER DATA ---
+  // --- DEFAULT DATA STATES ---
   const [users, setUsers] = useState([
     { id: 1, username: 'admin', password: 'admin123' }
   ]);
 
-  // --- SITE CONFIG STATE ---
   const [siteConfig, setSiteConfig] = useState({
     name: "Tongdam",
     suffix: "Computers",
     icon: "Monitor",
-    logoType: "icon", // 'icon' or 'image'
-    logoUrl: ""
+    logoType: "icon",
+    logoUrl: "",
+    faviconUrl: "" 
   });
 
-  // --- SOCIAL MEDIA STATE ---
   const [socials, setSocials] = useState([
     { id: 1, platform: 'Facebook', url: '#', icon: 'Facebook' },
     { id: 2, platform: 'Instagram', url: '#', icon: 'Instagram' }
   ]);
 
-  // --- HEADER MENU CONFIG ---
   const [menuConfig, setMenuConfig] = useState([
     { id: 'home', label: 'Home', type: 'internal', target: 'home', visible: true },
     { id: 'training', label: 'Training', type: 'dropdown-training', visible: true },
@@ -1194,14 +1321,12 @@ const App = () => {
     { id: 'gallery', label: 'Gallery', type: 'internal', target: 'gallery', visible: true },
   ]);
 
-  // --- SLIDER IMAGES STATE ---
   const [sliderImages, setSliderImages] = useState([
     { id: 1, url: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80' },
     { id: 2, url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80' },
     { id: 3, url: 'https://images.unsplash.com/photo-1555529771-835f59bfc5bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80' }
   ]);
 
-  // --- GALLERY IMAGES STATE ---
   const [galleryImages, setGalleryImages] = useState([
     { id: 1, url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80' },
     { id: 2, url: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=800&q=80' },
@@ -1211,7 +1336,6 @@ const App = () => {
     { id: 6, url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&q=80' },
   ]);
 
-  // --- INSTITUTE INTRO CONTENT ---
   const [instituteInfo, setInstituteInfo] = useState({
     computer: { 
         title: "Computer Training Centre", 
@@ -1234,7 +1358,6 @@ const App = () => {
     }
   });
 
-  // --- COURSES DATA (Computer Only) ---
   const [courses, setCourses] = useState([
     { id: 1, name: "Computer Basics", icon: "Monitor", desc: "Introduction to computers, OS, and basic operations." },
     { id: 2, name: "DCA", icon: "BookOpen", desc: "Diploma in Computer Applications - 6 months." },
@@ -1244,7 +1367,6 @@ const App = () => {
     { id: 6, name: "Web Dev", icon: "Globe", desc: "HTML, CSS, JS, and website building." },
   ]);
 
-  // --- DYNAMIC PAGES DATA ---
   const [pages, setPages] = useState([
     { 
       id: 'banking', 
@@ -1284,12 +1406,111 @@ const App = () => {
     }
   ]);
 
+  // --- FIREBASE SYNC HOOKS ---
+  useEffect(() => {
+    if (!auth) return;
+
+    const initAuth = async () => {
+        try {
+            if (typeof window !== 'undefined' && window.__initial_auth_token) {
+                await signInWithCustomToken(auth, window.__initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Auth error:", error);
+        }
+    };
+
+    initAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setAuthUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+      if (!db) {
+          // If running locally without Firebase keys, skip loading screen
+          setIsDbReady(true);
+          return;
+      }
+      
+      if (!authUser) return;
+
+      const publicDataRef = collection(db, 'artifacts', appId, 'public', 'data', 'website_state');
+      
+      const unsubscribe = onSnapshot(publicDataRef, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+              if (change.type === 'added' || change.type === 'modified') {
+                  const docData = change.doc.data().data;
+                  switch (change.doc.id) {
+                      case 'siteConfig': setSiteConfig(docData); break;
+                      case 'instituteInfo': setInstituteInfo(docData); break;
+                      case 'courses': setCourses(docData); break;
+                      case 'pages': setPages(docData); break;
+                      case 'socials': setSocials(docData); break;
+                      case 'menuConfig': setMenuConfig(docData); break;
+                      case 'sliderImages': setSliderImages(docData); break;
+                      case 'galleryImages': setGalleryImages(docData); break;
+                      case 'users': setUsers(docData); break;
+                  }
+              }
+          });
+          // Signal that data has been downloaded so we can show the site
+          setIsDbReady(true);
+      }, (error) => {
+          console.error("Firebase sync error:", error);
+          setIsDbReady(true);
+      });
+
+      return () => unsubscribe();
+  }, [db, authUser, appId]);
+
+  // --- WRAPPED SETTERS FOR FIREBASE ---
+  const saveStateToFirebase = async (docId, data) => {
+      if (db && authUser) {
+          try {
+              const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'website_state', docId);
+              await setDoc(docRef, { data });
+          } catch (e) {
+              console.error(`Error saving ${docId}:`, e);
+          }
+      }
+  };
+
+  const handleSetSiteConfig = (data) => { setSiteConfig(data); saveStateToFirebase('siteConfig', data); };
+  const handleSetInstituteInfo = (data) => { setInstituteInfo(data); saveStateToFirebase('instituteInfo', data); };
+  const handleSetCourses = (data) => { setCourses(data); saveStateToFirebase('courses', data); };
+  const handleSetPages = (data) => { setPages(data); saveStateToFirebase('pages', data); };
+  const handleSetSocials = (data) => { setSocials(data); saveStateToFirebase('socials', data); };
+  const handleSetMenuConfig = (data) => { setMenuConfig(data); saveStateToFirebase('menuConfig', data); };
+  const handleSetSliderImages = (data) => { setSliderImages(data); saveStateToFirebase('sliderImages', data); };
+  const handleSetGalleryImages = (data) => { setGalleryImages(data); saveStateToFirebase('galleryImages', data); };
+  const handleSetUsers = (data) => { setUsers(data); saveStateToFirebase('users', data); };
+
+
   // Handle scroll for navbar styling
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Update browser favicon when siteConfig.faviconUrl changes
+  useEffect(() => {
+    if (siteConfig.faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = siteConfig.faviconUrl;
+    }
+  }, [siteConfig.faviconUrl]);
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -1364,6 +1585,16 @@ const App = () => {
           document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
       }
   };
+
+  // --- SHOW LOADING SCREEN WHILE FIREBASE FETCHES DATA ---
+  if (!isDbReady) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-medium animate-pulse">Loading Website...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans text-slate-800 bg-slate-50 min-h-screen flex flex-col">
@@ -1795,15 +2026,15 @@ const App = () => {
         
         {currentView === 'admin-dashboard' && isAdmin && (
           <AdminDashboard 
-            courses={courses} setCourses={setCourses} 
-            pages={pages} setPages={setPages}
-            instituteInfo={instituteInfo} setInstituteInfo={setInstituteInfo}
-            siteConfig={siteConfig} setSiteConfig={setSiteConfig}
-            users={users} setUsers={setUsers}
-            socials={socials} setSocials={setSocials}
-            menuConfig={menuConfig} setMenuConfig={setMenuConfig}
-            sliderImages={sliderImages} setSliderImages={setSliderImages}
-            galleryImages={galleryImages} setGalleryImages={setGalleryImages}
+            courses={courses} setCourses={handleSetCourses} 
+            pages={pages} setPages={handleSetPages}
+            instituteInfo={instituteInfo} setInstituteInfo={handleSetInstituteInfo}
+            siteConfig={siteConfig} setSiteConfig={handleSetSiteConfig}
+            users={users} setUsers={handleSetUsers}
+            socials={socials} setSocials={handleSetSocials}
+            menuConfig={menuConfig} setMenuConfig={handleSetMenuConfig}
+            sliderImages={sliderImages} setSliderImages={handleSetSliderImages}
+            galleryImages={galleryImages} setGalleryImages={handleSetGalleryImages}
             currentUser={currentUser}
             handleLogout={handleLogout} 
           />
