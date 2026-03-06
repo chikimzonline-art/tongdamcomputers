@@ -1519,7 +1519,7 @@ const App = () => {
         {currentView === 'home' && (
           <>
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+            <section className="relative pt-32 pb-20 lg:py-0 lg:min-h-screen flex items-center overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-700 z-0"></div>
               <div className="absolute top-0 right-0 w-1/2 h-full bg-white opacity-5 transform -skew-x-12 translate-x-20"></div>
               
